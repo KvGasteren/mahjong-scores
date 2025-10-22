@@ -106,13 +106,13 @@ export default function SessionDetailPage() {
             return (
               <div key={p} className="grid grid-cols-8 items-center gap-3">
                 <div className="text-sm col-span-2">{p}</div>
-                <div className="col-span-2 text-base md:text:sm">
+                <div className="col-span-2 text-base md:text-sm">
                   <NumberInput
                     value={scores[p] || ""}
                     onChange={(v) => setScores((prev) => ({ ...prev, [p]: v }))}
                   />
                 </div>
-                <div className="col-span-2 text-base md:text:sm">
+                <div className="col-span-2 text-base md:text-sm">
                   <NumberInput
                     value={doubles[p] || ""}
                     onChange={(v) =>
