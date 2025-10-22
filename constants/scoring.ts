@@ -16,3 +16,5 @@ export const SCORING_TABLE: ScoringItem[] = [
   { id: 'dragon-pung', label: 'Pung of Dragons', points: 2 },
   // 👉 Replace values with your Dutch house rules; these are placeholders.
 ]
+
+export const STARTING_POINTS = 2000;
