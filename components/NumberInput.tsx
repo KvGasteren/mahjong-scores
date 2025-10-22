@@ -70,7 +70,7 @@ export default function NumberInput({
       onChange={handleChange}
       onKeyDown={handleKeyDown}
       onBlur={handleBlur}
-      className={`w-full rounded-xl border border-neutral-300 px-2 py-1 text-sm font-mono ${className}`}
+      className={`w-full rounded-xl border border-neutral-300 px-2 py-1 text-base md:text-sm font-mono ${className}`}
     />
   );
 }
