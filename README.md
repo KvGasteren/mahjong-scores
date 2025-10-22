@@ -3,7 +3,7 @@ Mahjong Scores is a webapp built to track scores for my group of mahjong
 players.
 
 ## Usage
-The app is currently hosted (here)[https://mahjong-scores-ce38g1viv-koen-van-gasterens-projects.vercel.app/]
+The app is currently hosted [here](https://mahjong-scores-ce38g1viv-koen-van-gasterens-projects.vercel.app/)
 
 ### New Session and keeping score
 Sessions > New Session to start a new session
