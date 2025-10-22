@@ -154,7 +154,7 @@ export default function SessionDetailPage() {
             );
           })}
           <input
-            className="w-full border rounded-2xl px-3 py-2 text-sm"
+            className="w-full border rounded-2xl px-3 py-2 text-base md:text-sm"
             placeholder="Note (optional): e.g., Self-draw All Pungs"
             value={note}
             onChange={(e) => setNote(e.target.value)}
