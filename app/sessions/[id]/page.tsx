@@ -54,8 +54,8 @@ export default function SessionDetailPage() {
     if (winnerSeatIndex !== null && eastSeatIndex !== null) {
       const finalScores = computeFinalScores(scores, doubles);
       const deltas = calculateDeltas({
-        scores: finalScores, // we can pass final scores directly
-        doubles, // (optional to keep)
+        scores,
+        doubles,
         winnerSeatIndex,
         eastSeatIndex,
       });
