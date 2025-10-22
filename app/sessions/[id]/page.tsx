@@ -78,15 +78,21 @@ export default function SessionDetailPage() {
     }
   };
 
-  const totals:Record<PlayerName, number> = useMemo(() => {
-    if (!session) return Object.fromEntries(PLAYERS.map((p) => [p, 2000])) as Record<PlayerName, number>;
-    return session.hands.reduce((acc, h) => {
-      for (const p of PLAYERS) acc[p] = (acc[p] || 2000) + (h.deltas[p] || 2000);
-      return acc;
-    }, Object.fromEntries(PLAYERS.map((p) => [p, 2000])) as Record<PlayerName, number>);
-  }, [session]);
+  const STARTING_POINTS = 2000; // set to 0 for pure deltas; or e.g. 20000 if you want a starting stack once
 
-  if (!session) return <div>Session not found.</div>;
+  const totals: Record<PlayerName, number> = useMemo(() => {
+    if (!session) {
+      return Object.fromEntries(
+        PLAYERS.map((p) => [p, STARTING_POINTS])
+      ) as Record<PlayerName, number>;
+    }
+    return session.hands.reduce((acc, h) => {
+      for (const p of PLAYERS) {
+        acc[p] = (acc[p] ?? STARTING_POINTS) + (h.deltas[p] ?? 0);
+      }
+      return acc;
+    }, Object.fromEntries(PLAYERS.map((p) => [p, STARTING_POINTS])) as Record<PlayerName, number>);
+  }, [session]);
 
   return (
     <div className="space-y-4">
@@ -197,7 +203,9 @@ export default function SessionDetailPage() {
         {session.hands.toReversed().map((h, idx) => (
           <div key={h.id} className="rounded-2xl border bg-white p-3">
             <div className="flex items-center justify-between">
-              <div className="text-xs text-neutral-500">Hand #{session.hands.length - idx}</div>
+              <div className="text-xs text-neutral-500">
+                Hand #{session.hands.length - idx}
+              </div>
               <div className="flex gap-2">
                 <span className="px-2 py-0.5 text-xs rounded-full bg-emerald-100 text-emerald-800">
                   Winner: {PLAYERS[h.winnerSeatIndex]}
