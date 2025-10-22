@@ -29,3 +29,4 @@ Under Rules the scoring rules are shown
 - add photo to session
 - add note to hand and show with clickable info icon and modal pop out
 - update scoring table
+- mobile: table gets bigger when editing scores
