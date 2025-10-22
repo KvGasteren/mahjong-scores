@@ -1,36 +1,31 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Mahjong Scores
+Mahjong Scores is a webapp built to track scores for my group of mahjong
+players.
 
-## Getting Started
+## Usage
+The app is currently hosted (here)[https://mahjong-scores-ce38g1viv-koen-van-gasterens-projects.vercel.app/]
 
-First, run the development server:
+### New Session and keeping score
+Sessions > New Session to start a new session
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+Per round (hand) insert the base points of each player, and the amount
+of times this should be doubled. Doubling for East is automatically taken
+into account, so should _not_ be included in this amount.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Indicate the winner of the round (the person that reached Mahjong)
+And the player that played East position (for double paying and receiving)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Click Add Hand to add the scores to the session.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Viewing past sessions
+Under Sessions you see an overview of past sessions, click on the "title" to open
+the session and view its details.
 
-## Learn More
+### Perusing Rules
+Under Rules the scoring rules are shown
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Features under development
+- persistant storage
+- add photo to session
+- add note to hand and show with clickable info icon and modal pop out
+- update scoring table
