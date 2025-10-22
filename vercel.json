@@ -1,0 +1,6 @@
+{
+  "regions": ["fra1"],
+  "env": {
+    "TZ": "Europe/Amsterdam"
+  }
+}
