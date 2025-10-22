@@ -15,8 +15,10 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { calculateDeltas } from "@/lib/calculateDeltas";
 import { SeatIndex } from "@/lib/playerOrder";
+import { STARTING_POINTS } from "@/constants/scoring";
 
 export default function SessionDetailPage() {
+  
   const { id } = useParams<{ id: string }>();
   const { sessions, addHand, deleteHand } = useSessionStore();
   const session = sessions.find((s) => s.id === id);
@@ -78,8 +80,6 @@ export default function SessionDetailPage() {
     }
   };
 
-  const STARTING_POINTS = 2000; // set to 0 for pure deltas; or e.g. 20000 if you want a starting stack once
-
   const totals: Record<PlayerName, number> = useMemo(() => {
     if (!session) {
       return Object.fromEntries(
@@ -93,6 +93,8 @@ export default function SessionDetailPage() {
       return acc;
     }, Object.fromEntries(PLAYERS.map((p) => [p, STARTING_POINTS])) as Record<PlayerName, number>);
   }, [session]);
+
+  if (!session) return <div>Session not found.</div>;
 
   return (
     <div className="space-y-4">
