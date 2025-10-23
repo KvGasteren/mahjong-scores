@@ -6,10 +6,12 @@ import { computeFinalScores } from "@/lib/scoreHelpers";
 import { calculateDeltas } from "@/lib/calculateDeltas";
 import { SeatIndex } from "@/lib/playerOrder";
 
+
 export async function POST(
   req: Request,
-  { params }: { params: { id: string } }
+  context : { params: Promise<{ id: string }> }
 ) {
+  const { id: sessionId } = await context.params
   const body = await req.json();
   const { baseScores, doubles, winnerName, eastName } = body as {
     baseScores: Record<string, number>;
@@ -18,7 +20,7 @@ export async function POST(
     eastName: string;
   };
 
-  const [session] = await db.select().from(sessions).where(eq(sessions.id, params.id));
+  const [session] = await db.select().from(sessions).where(eq(sessions.id, sessionId));
   if (!session) return NextResponse.json({ error: "Session not found" }, { status: 404 });
 
   // map names -> seat indices using players[] order
@@ -41,14 +43,14 @@ export async function POST(
   // next index
   const [last] = await db.select({ index: hands.index })
     .from(hands)
-    .where(eq(hands.sessionId, params.id))
+    .where(eq(hands.sessionId, sessionId))
     .orderBy(desc(hands.index))
     .limit(1);
 
   const nextIndex = (last?.index ?? -1) + 1;
 
   const [row] = await db.insert(hands).values({
-    sessionId: params.id,
+    sessionId,
     index: nextIndex,
     baseScores,
     doubles,
