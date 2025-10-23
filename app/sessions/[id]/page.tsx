@@ -1,9 +1,7 @@
 "use client";
-import { useParams } from "next/navigation";
-import { useSessionStore } from "@/lib/sessionStore";
-import { PlayerName, PLAYERS } from "@/constants/players";
+import { useParams, useRouter } from "next/navigation";
+import { useEffect, useMemo, useState, Fragment } from "react";
 import NumberInput from "@/components/NumberInput";
-import { useMemo, useState, Fragment } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faCompass as faCompassRegular,
@@ -13,92 +11,145 @@ import {
   faCompass as faCompassSolid,
   faStar as faStarSolid,
 } from "@fortawesome/free-solid-svg-icons";
-import { calculateDeltas } from "@/lib/calculateDeltas";
-import { SeatIndex } from "@/lib/playerOrder";
 import { STARTING_POINTS } from "@/constants/scoring";
 
+type HandRow = {
+  id: string;
+  index: number;
+  baseScores: Record<string, number>;
+  doubles: Record<string, number>;
+  winnerName: string;
+  eastName: string;
+  finalScores: Record<string, number>;
+  deltas: Record<string, number>;
+  handNote?: string | null;
+};
+
+type SessionDTO = {
+  session: {
+    id: string;
+    title: string;
+    players: string[]; // seat order
+    playDate: string; // YYYY-MM-DD
+  };
+  hands: HandRow[];
+};
+
 export default function SessionDetailPage() {
-  
+  const router = useRouter();
   const { id } = useParams<{ id: string }>();
-  const { sessions, addHand, deleteHand } = useSessionStore();
-  const session = sessions.find((s) => s.id === id);
-  const [scores, setScores] = useState<
-    Record<(typeof PLAYERS)[number], number>
-  >(
-    Object.fromEntries(PLAYERS.map((p) => [p, 0])) as Record<PlayerName, number>
-  );
-  const [doubles, setDoubles] = useState<
-    Record<(typeof PLAYERS)[number], number>
-  >(
-    Object.fromEntries(PLAYERS.map((p) => [p, 0])) as Record<PlayerName, number>
-  );
+  const isNew = id === "new";
+
+  const [data, setData] = useState<SessionDTO | null>(null);
+
+  // Local input state keyed by player name
+  const [scores, setScores] = useState<Record<string, number>>({});
+  const [doubles, setDoubles] = useState<Record<string, number>>({});
   const [note, setNote] = useState("");
 
-  // NEW: single-selection winner & east per hand
-  const [winnerSeatIndex, setWinnerSeatIndex] = useState<SeatIndex | null>(
-    null
-  );
-  const [eastSeatIndex, setEastSeatIndex] = useState<SeatIndex | null>(null);
+  const [winnerName, setWinnerName] = useState<string | null>(null);
+  const [eastName, setEastName] = useState<string | null>(null);
 
-  const pow2 = (e: number) => Math.pow(2, Math.max(0, Math.floor(e)));
-  const computeFinalScores = (
-    scores: Record<PlayerName, number>,
-    doubles: Record<PlayerName, number>
-  ): Record<PlayerName, number> =>
-    Object.fromEntries(
-      PLAYERS.map((p) => [p, (scores[p] ?? 0) * pow2(doubles[p] ?? 0)])
-    ) as Record<PlayerName, number>;
+  useEffect(() => {
+    if (isNew) router.replace("/sessions/new");
+  }, [isNew, router]);
 
-  // const isSeat = (x: number | null): x is SeatIndex =>
-  //   x === 0 || x === 1 || x === 2 || x === 3;
+  // Load session + hands from API
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const res = await fetch(`/api/sessions/${id}`);
+      if (!res.ok) {
+        setData(null);
+        return;
+      }
+      const dto: SessionDTO = await res.json();
+      if (cancelled) return;
+      setData(dto);
 
-  const onAddHand = () => {
-    if (winnerSeatIndex !== null && eastSeatIndex !== null) {
-      const finalScores = computeFinalScores(scores, doubles);
-      const deltas = calculateDeltas({
-        scores,
-        doubles,
-        winnerSeatIndex,
-        eastSeatIndex,
-      });
-
-      addHand(session!.id, {
-        deltas,
-        scores: finalScores, // <- store the scores for the log
-        winnerSeatIndex,
-        eastSeatIndex,
-        note,
-        usedRules: [],
-      });
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      setScores(Object.fromEntries(PLAYERS.map((p) => [p, 0])) as any);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      setDoubles(Object.fromEntries(PLAYERS.map((p) => [p, 0])) as any);
+      // init input maps
+      const init = Object.fromEntries(dto.session.players.map((p) => [p, 0]));
+      setScores(init as Record<string, number>);
+      setDoubles(init as Record<string, number>);
+      setWinnerName(null);
+      setEastName(null);
       setNote("");
-      setWinnerSeatIndex(null);
-      setEastSeatIndex(null);
-    }
-  };
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [id]);
 
-  const totals: Record<PlayerName, number> = useMemo(() => {
-    if (!session) {
-      return Object.fromEntries(
-        PLAYERS.map((p) => [p, STARTING_POINTS])
-      ) as Record<PlayerName, number>;
-    }
-    return session.hands.reduce((acc, h) => {
-      for (const p of PLAYERS) {
+  const players = useMemo<string[]>(
+    () => data?.session.players ?? [], // use [] only once, memoized
+    [data?.session.players] // re-run only if the players array itself changes
+  );
+
+  const totals: Record<string, number> = useMemo(() => {
+    if (!data) return {};
+    const init = Object.fromEntries(
+      players.map((p) => [p, STARTING_POINTS])
+    ) as Record<string, number>;
+    return (data.hands ?? []).reduce((acc, h) => {
+      for (const p of players) {
         acc[p] = (acc[p] ?? STARTING_POINTS) + (h.deltas[p] ?? 0);
       }
       return acc;
-    }, Object.fromEntries(PLAYERS.map((p) => [p, STARTING_POINTS])) as Record<PlayerName, number>);
-  }, [session]);
+    }, init);
+  }, [data, players]);
 
-  if (!session) return <div>Session not found.</div>;
+  async function onAddHand() {
+    if (!winnerName || !eastName || !data) return;
+    const payload = { baseScores: scores, doubles, winnerName, eastName };
+    const res = await fetch(`/api/sessions/${data.session.id}/hands`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      alert("Failed to add hand");
+      return;
+    }
+    const newHand: HandRow = await res.json();
+    setData((prev) =>
+      prev ? { ...prev, hands: [...prev.hands, newHand] } : prev
+    );
+
+    const init = Object.fromEntries(players.map((p) => [p, 0])) as Record<
+      string,
+      number
+    >;
+    setScores(init);
+    setDoubles(init);
+    setWinnerName(null);
+    setEastName(null);
+    setNote("");
+  }
+
+  async function onDeleteHand(handId: string) {
+    if (!data) return;
+    const res = await fetch(
+      `/api/sessions/${data.session.id}/hands/${handId}`,
+      {
+        method: "DELETE",
+      }
+    );
+    if (res.ok) {
+      setData((prev) =>
+        prev
+          ? { ...prev, hands: prev.hands.filter((h) => h.id !== handId) }
+          : prev
+      );
+    }
+  }
+
+  if (!data) {
+    return <div className="p-4">Loading session…</div>;
+  }
 
   return (
     <div className="space-y-4">
-      <h1 className="text-xl font-semibold">{session.title}</h1>
+      <h1 className="text-xl font-semibold">{data.session.title}</h1>
 
       <div className="rounded-2xl border bg-white p-3">
         <div className="grid gap-3">
@@ -108,21 +159,22 @@ export default function SessionDetailPage() {
             <div>Win</div>
             <div>East</div>
           </div>
-          {PLAYERS.map((p, idx) => {
-            const isWinner = winnerSeatIndex === idx;
-            const isEast = eastSeatIndex === idx;
+
+          {players.map((p) => {
+            const isWinner = winnerName === p;
+            const isEast = eastName === p;
             return (
               <div key={p} className="grid grid-cols-8 items-center gap-3">
                 <div className="text-sm col-span-2">{p}</div>
                 <div className="col-span-2 text-base md:text-sm">
                   <NumberInput
-                    value={scores[p] || ""}
+                    value={scores[p] ?? ""}
                     onChange={(v) => setScores((prev) => ({ ...prev, [p]: v }))}
                   />
                 </div>
                 <div className="col-span-2 text-base md:text-sm">
                   <NumberInput
-                    value={doubles[p] || ""}
+                    value={doubles[p] ?? ""}
                     onChange={(v) =>
                       setDoubles((prev) => ({ ...prev, [p]: v }))
                     }
@@ -134,9 +186,7 @@ export default function SessionDetailPage() {
                   aria-label={
                     isWinner ? `${p} is winner` : `Set ${p} as winner`
                   }
-                  onClick={() =>
-                    setWinnerSeatIndex(isWinner ? null : (idx as SeatIndex))
-                  }
+                  onClick={() => setWinnerName(isWinner ? null : p)}
                   className={`justify-self-center p-2`}
                 >
                   <FontAwesomeIcon
@@ -148,9 +198,7 @@ export default function SessionDetailPage() {
                 <button
                   type="button"
                   aria-label={isEast ? `${p} is East` : `Set ${p} as East`}
-                  onClick={() =>
-                    setEastSeatIndex(isEast ? null : (idx as SeatIndex))
-                  }
+                  onClick={() => setEastName(isEast ? null : p)}
                   className={`justify-self-center p-2`}
                 >
                   <FontAwesomeIcon
@@ -161,6 +209,7 @@ export default function SessionDetailPage() {
               </div>
             );
           })}
+
           <input
             className="w-full border rounded-2xl px-3 py-2 text-base md:text-sm"
             placeholder="Note (optional): e.g., Self-draw All Pungs"
@@ -169,14 +218,14 @@ export default function SessionDetailPage() {
           />
           <button
             className="w-full rounded-2xl bg-black text-white py-3 disabled:opacity-50"
-            disabled={winnerSeatIndex === null || eastSeatIndex === null}
+            disabled={!winnerName || !eastName}
             onClick={onAddHand}
           >
             Add Hand
           </button>
           <p className="text-xs text-neutral-500 -mt-2">
-            Pick exactly one <b>winner</b> ({" "}
-            {<FontAwesomeIcon icon={faStarSolid} />}) and one <b>east</b> ({" "}
+            Pick exactly one <b>winner</b> (
+            {<FontAwesomeIcon icon={faStarSolid} />}) and one <b>east</b> (
             {<FontAwesomeIcon icon={faCompassSolid} />}) each hand. Icons turn
             solid when selected.
           </p>
@@ -202,31 +251,32 @@ export default function SessionDetailPage() {
             ))}
           </div>
         </div>
-        {session.hands.toReversed().map((h, idx) => (
+
+        {data.hands.toReversed().map((h, idx) => (
           <div key={h.id} className="rounded-2xl border bg-white p-3">
             <div className="flex items-center justify-between">
               <div className="text-xs text-neutral-500">
-                Hand #{session.hands.length - idx}
+                Hand #{data.hands.length - idx}
               </div>
               <div className="flex gap-2">
                 <span className="px-2 py-0.5 text-xs rounded-full bg-emerald-100 text-emerald-800">
-                  Winner: {PLAYERS[h.winnerSeatIndex]}
+                  Winner: {h.winnerName}
                 </span>
                 <span className="px-2 py-0.5 text-xs rounded-full bg-sky-100 text-sky-800">
-                  East: {PLAYERS[h.eastSeatIndex]}
+                  East: {h.eastName}
                 </span>
               </div>
             </div>
 
             <div className="mt-3 grid grid-cols-1 gap-2">
-              {PLAYERS.map((p) => (
+              {players.map((p) => (
                 <div
                   key={p}
                   className="grid grid-cols-3 items-center gap-2 rounded-xl bg-neutral-50 px-3 py-2"
                 >
                   <span className="truncate">{p}</span>
                   <span className="font-mono text-right">
-                    {h.scores?.[p] ?? 0}
+                    {h.finalScores?.[p] ?? 0}
                   </span>
                   <span
                     className={`font-mono text-right text-xs ${
@@ -242,9 +292,17 @@ export default function SessionDetailPage() {
               ))}
             </div>
 
-            {h.note && (
-              <div className="mt-2 text-xs text-neutral-600">{h.note}</div>
+            {h.handNote && (
+              <div className="mt-2 text-xs text-neutral-600">{h.handNote}</div>
             )}
+            <div className="mt-2 flex justify-end">
+              <button
+                className="text-xs text-red-600"
+                onClick={() => onDeleteHand(h.id)}
+              >
+                Delete
+              </button>
+            </div>
           </div>
         ))}
       </div>
@@ -257,7 +315,7 @@ export default function SessionDetailPage() {
               <th className="p-2 text-left align-bottom" rowSpan={2}>
                 #
               </th>
-              {PLAYERS.map((p) => (
+              {players.map((p) => (
                 <th key={p} className="p-2 text-center" colSpan={2}>
                   {p}
                 </th>
@@ -271,7 +329,7 @@ export default function SessionDetailPage() {
               <th className="p-2" rowSpan={2}></th>
             </tr>
             <tr className="border-b">
-              {PLAYERS.map((p) => (
+              {players.map((p) => (
                 <Fragment key={p}>
                   <th className="p-1 text-right font-normal col-span-2">
                     Score
@@ -282,13 +340,13 @@ export default function SessionDetailPage() {
             </tr>
           </thead>
           <tbody>
-            {session.hands.map((h, idx) => (
+            {data.hands.map((h, idx) => (
               <tr key={h.id} className="border-b last:border-0">
                 <td className="p-2 align-top">{idx + 1}</td>
-                {PLAYERS.map((p) => (
+                {players.map((p) => (
                   <Fragment key={p}>
                     <td className="p-2 text-right font-mono align-top">
-                      {h.scores?.[p] ?? 0}
+                      {h.finalScores?.[p] ?? 0}
                     </td>
                     <td
                       className={`p-2 text-right font-mono align-top text-xs ${
@@ -304,18 +362,18 @@ export default function SessionDetailPage() {
                 ))}
                 <td className="p-2 align-top">
                   <span className="px-2 py-0.5 text-xs rounded-full bg-emerald-100 text-emerald-800">
-                    {PLAYERS[h.winnerSeatIndex]}
+                    {h.winnerName}
                   </span>
                 </td>
                 <td className="p-2 align-top">
                   <span className="px-2 py-0.5 text-xs rounded-full bg-sky-100 text-sky-800">
-                    {PLAYERS[h.eastSeatIndex]}
+                    {h.eastName}
                   </span>
                 </td>
                 <td className="p-2 align-top">
                   <button
                     className="text-xs text-red-600"
-                    onClick={() => deleteHand(session.id, h.id)}
+                    onClick={() => onDeleteHand(h.id)}
                   >
                     Delete
                   </button>
@@ -326,16 +384,16 @@ export default function SessionDetailPage() {
           <tfoot>
             <tr className="bg-neutral-50 font-medium">
               <td className="p-2">Totals</td>
-              {PLAYERS.map((p) => (
+              {players.map((p) => (
                 <Fragment key={p}>
                   {/* empty score cell in totals */}
                   <td className="p-2"></td>
                   <td
                     className={`p-2 text-right font-mono ${
-                      totals[p] < 0 ? "text-rose-700" : "text-green-700"
+                      (totals[p] ?? 0) < 0 ? "text-rose-700" : "text-green-700"
                     }`}
                   >
-                    {totals[p]}
+                    {totals[p] ?? 0}
                   </td>
                 </Fragment>
               ))}
@@ -346,57 +404,6 @@ export default function SessionDetailPage() {
           </tfoot>
         </table>
       </div>
-      {/* <div className="rounded-2xl border bg-white">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b bg-neutral-50">
-              <th className="p-2 text-left">#</th>
-              {PLAYERS.map((p) => (
-                <th key={p} className="p-2 text-right">
-                  {p}
-                </th>
-              ))}
-              <th className="p-2 text-left">Note</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            {session.hands.map((h, idx) => (
-              <tr key={h.id} className="border-b last:border-0">
-                <td className="p-2 align-top">{idx + 1}</td>
-                {PLAYERS.map((p) => (
-                  <td key={p} className="p-2 text-right font-mono align-top">
-                    {h.deltas[p] > 0 ? "+" : ""}
-                    {h.deltas[p]}
-                  </td>
-                ))}
-                <td className="p-2 align-top text-neutral-600">{h.note}</td>
-                <td className="p-2 align-top">
-                  <button
-                    className="text-xs text-red-600"
-                    onClick={() => deleteHand(session.id, h.id)}
-                  >
-                    Delete
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-          <tfoot>
-            <tr className="bg-neutral-50 font-medium">
-              <td className="p-2">Totals</td>
-              {PLAYERS.map((p) => (
-                <td key={p} className="p-2 text-right font-mono">
-                  {totals[p] > 0 ? "+" : ""}
-                  {totals[p]}
-                </td>
-              ))}
-              <td></td>
-              <td></td>
-            </tr>
-          </tfoot>
-        </table>
-      </div> */}
     </div>
   );
 }
