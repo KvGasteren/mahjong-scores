@@ -27,3 +27,22 @@ export async function DELETE(
   await db.delete(sessions).where(eq(sessions.id, id))
   return new NextResponse(null, { status: 204 })
 }
+
+export async function PATCH(
+  req: NextRequest,
+  context: { params: Promise<{ id: string }> }
+) {
+  const { id } = await context.params;
+  const { finalized } = (await req.json()) as { finalized: boolean };
+
+  const [row] = await db
+    .update(sessions)
+    .set({ finalized, updatedAt: new Date() })
+    .where(eq(sessions.id, id))
+    .returning();
+
+  if (!row) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+  return NextResponse.json(row);
+}

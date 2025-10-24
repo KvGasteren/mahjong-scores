@@ -1,102 +1,98 @@
 'use client'
 import Link from 'next/link'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 
-type SessionRow = {
-  id: string
-  title: string
-  players: string[] // seat order
-  playDate: string // YYYY-MM-DD
-  createdAt: string // ISO
-  updatedAt: string // ISO
-}
+type SummaryRow =
+  | {
+      id: string
+      title: string
+      players: string[]
+      playDate: string
+      createdAt: string
+      updatedAt: string
+      finalized: false
+      status: 'in-progress'
+    }
+  | {
+      id: string
+      title: string
+      players: string[]
+      playDate: string
+      createdAt: string
+      updatedAt: string
+      finalized: true
+      status: 'finalized'
+      totals: Record<string, number>
+    }
 
 export default function SessionsPage() {
-  const [sessions, setSessions] = useState<SessionRow[]>([])
+  const [rows, setRows] = useState<SummaryRow[]>([])
   const [loading, setLoading] = useState(true)
   const [err, setErr] = useState<string | null>(null)
 
-  // load sessions from API
   useEffect(() => {
     let cancelled = false
     ;(async () => {
       try {
         setLoading(true)
-        const res = await fetch('/api/sessions', { cache: 'no-store' })
+        const res = await fetch('/api/sessions/summary', { cache: 'no-store' })
         if (!res.ok) throw new Error(`HTTP ${res.status}`)
-        const rows: SessionRow[] = await res.json()
-        if (!cancelled) setSessions(rows)
-      } catch (e: unknown) {
-        if (!cancelled) {
-          const message =
-            e instanceof Error ? e.message : 'Failed to load sessions'
-          setErr(message)
-        }
+        const data: SummaryRow[] = await res.json()
+        if (!cancelled) setRows(data)
+      } catch (e) {
+        if (!cancelled) setErr(e instanceof Error ? e.message : 'Failed to load')
       } finally {
         if (!cancelled) setLoading(false)
       }
     })()
-    return () => {
-      cancelled = true
-    }
+    return () => { cancelled = true }
   }, [])
 
-  const empty = useMemo(
-    () => !loading && sessions.length === 0,
-    [loading, sessions.length]
-  )
-
-  async function onDelete(id: string) {
-    if (!confirm('Delete this session? This cannot be undone.')) return
-    const res = await fetch(`/api/sessions/${id}`, { method: 'DELETE' })
-    if (!res.ok) {
-      alert('Failed to delete session')
-      return
-    }
-    setSessions((prev) => prev.filter((s) => s.id !== id))
-  }
+  if (loading) return <div className="p-6">Loading…</div>
+  if (err) return <div className="p-6 text-red-600">{err}</div>
 
   return (
-    <div className="space-y-4">
+    <div className="p-6 space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-semibold">Sessions</h1>
-        <Link
-          href="/sessions/new"
-          className="rounded-2xl bg-black text-white px-4 py-2"
-        >
-          New
-        </Link>
+        <Link className="rounded-xl bg-black text-white px-3 py-2" href="/sessions/new">New session</Link>
       </div>
 
-      {loading && <p className="text-sm text-neutral-600">Loading…</p>}
-      {err && <p className="text-sm text-rose-700">Error: {err}</p>}
-      {empty && (
-        <p className="text-sm text-neutral-600">
-          No sessions yet. Tap <b>New</b> to start.
-        </p>
-      )}
-
-      <div className="space-y-3">
-        {sessions.map((s) => (
-          <div key={s.id} className="rounded-2xl border bg-white p-3">
-            <div className="flex items-start justify-between gap-2">
-              <div>
-                <Link href={`/sessions/${s.id}`} className="font-medium">
+      <div className="grid gap-3">
+        {rows.map((s) => (
+          <div key={s.id} className="rounded-2xl border p-4">
+            <div className="flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <Link href={`/sessions/${s.id}`} className="font-medium hover:underline">
                   {s.title}
                 </Link>
                 <div className="text-xs text-neutral-500">
-                  {new Date(s.playDate).toLocaleDateString()}
-                </div>
-                <div className="text-xs text-neutral-500">
-                  {s.players.join(' · ')}
+                  {new Date(s.createdAt).toLocaleDateString('nl-NL')}
                 </div>
               </div>
-              <button
-                onClick={() => onDelete(s.id)}
-                className="text-xs text-red-600"
-              >
-                Delete
-              </button>
+              <span className={`text-xs rounded-full px-2 py-1 ${s.finalized ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
+                {s.finalized ? 'Finalized' : 'In progress'}
+              </span>
+            </div>
+
+            <div className="mt-2 text-sm text-neutral-700">
+              {s.finalized ? (
+                <div className="flex flex-wrap gap-2">
+                  {s.players.map((p) => (
+                    <span key={p} className="inline-flex items-center gap-1 rounded-lg bg-neutral-100 px-2 py-1">
+                      <span className="font-mono">{p}</span>
+                      <span className="font-semibold">{(s as Extract<SummaryRow,{finalized:true}>).totals[p] ?? 0}</span>
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <span className="italic text-neutral-500">in-progress</span>
+              )}
+            </div>
+
+            <div className="mt-3 flex gap-3 text-xs">
+              <Link className="text-blue-600 hover:underline" href={`/sessions/${s.id}`}>Open</Link>
+              {/* keep your existing Delete button here if you have it */}
             </div>
           </div>
         ))}
