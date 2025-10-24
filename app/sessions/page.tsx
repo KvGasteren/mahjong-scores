@@ -85,7 +85,7 @@ export default function SessionsPage() {
                   {s.title}
                 </Link>
                 <div className="text-xs text-neutral-500">
-                  {new Date(s.createdAt).toLocaleString()}
+                  {new Date(s.playDate).toLocaleDateString()}
                 </div>
                 <div className="text-xs text-neutral-500">
                   {s.players.join(' · ')}
