@@ -30,3 +30,6 @@ Under Rules the scoring rules are shown
 - add note to hand and show with clickable info icon and modal pop out
 - <del>update scoring table</del>
 - <del>mobile: table gets bigger when editing scores</del>
+
+## known bugs
+- player names constant is still used, should be based on session.players
