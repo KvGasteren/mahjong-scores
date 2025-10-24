@@ -43,6 +43,7 @@ export default function SessionDetailPage() {
 
   const [data, setData] = useState<SessionDTO | null>(null)
   const [isEditing, setIsEditing] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   // Local input state keyed by player name
   const [scores, setScores] = useState<Record<string, number>>({})
@@ -174,6 +175,29 @@ export default function SessionDetailPage() {
     }
   }
 
+  async function onDeleteSession() {
+    if (!data) return
+    const ok = window.confirm(`Delete the session "${data.session.title}"?`)
+    if (!ok) return
+
+    try {
+      setIsDeleting(true)
+      const res = await fetch(`/api/sessions/${data.session.id}`, {
+        method: 'DELETE',
+      })
+      if (!res.ok) {
+        alert('Failed to delete the session.')
+        setIsDeleting(false)
+        return
+      }
+      router.replace('/sessions')
+      router.refresh()
+    } catch (e) {
+      alert('Something weent wrong while deleting.')
+      setIsDeleting(false)
+    }
+  }
+
   if (!data) {
     return <div className="p-4">Loading session…</div>
   }
@@ -194,6 +218,15 @@ export default function SessionDetailPage() {
             onClick={() => toggleFinalized(!data?.session.finalized)}
           >
             {data?.session.finalized ? 'Unfinalize' : 'Finalize session'}
+          </button>
+          <button
+            className="rounded-xl px-3 py-1 text-sm bg-red-600 text-white disabled:opacity-50"
+            onClick={onDeleteSession}
+            disabled={isDeleting}
+            aria-label="Delete session"
+            title="Delete session"
+          >
+            {isDeleting ? 'Deleting…' : 'Delete'}
           </button>
         </div>
       </div>
