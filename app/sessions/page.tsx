@@ -40,12 +40,15 @@ export default function SessionsPage() {
         const data: SummaryRow[] = await res.json()
         if (!cancelled) setRows(data)
       } catch (e) {
-        if (!cancelled) setErr(e instanceof Error ? e.message : 'Failed to load')
+        if (!cancelled)
+          setErr(e instanceof Error ? e.message : 'Failed to load')
       } finally {
         if (!cancelled) setLoading(false)
       }
     })()
-    return () => { cancelled = true }
+    return () => {
+      cancelled = true
+    }
   }, [])
 
   if (loading) return <div className="p-6">Loading…</div>
@@ -55,22 +58,35 @@ export default function SessionsPage() {
     <div className="p-6 space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-semibold">Sessions</h1>
-        <Link className="rounded-xl bg-black text-white px-3 py-2" href="/sessions/new">New session</Link>
+        <Link
+          className="rounded-xl bg-black text-white px-3 py-2"
+          href="/sessions/new"
+        >
+          New session
+        </Link>
       </div>
 
       <div className="grid gap-3">
         {rows.map((s) => (
-          <div key={s.id} className="rounded-2xl border p-4">
+          <Link
+            key={s.id}
+            href={`/sessions/${s.id}`}
+            className="block rounded-2xl border p-4 transition hover:bg-neutral-50"
+          >
             <div className="flex items-center justify-between gap-3">
               <div className="min-w-0">
-                <Link href={`/sessions/${s.id}`} className="font-medium hover:underline">
-                  {s.title}
-                </Link>
+                <div className="font-medium">{s.title}</div>
                 <div className="text-xs text-neutral-500">
                   {new Date(s.playDate).toLocaleDateString('nl-NL')}
                 </div>
               </div>
-              <span className={`text-xs rounded-full px-2 py-1 ${s.finalized ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
+              <span
+                className={`text-xs rounded-full px-2 py-1 ${
+                  s.finalized
+                    ? 'bg-emerald-100 text-emerald-700'
+                    : 'bg-amber-100 text-amber-700'
+                }`}
+              >
                 {s.finalized ? 'Finalized' : 'In progress'}
               </span>
             </div>
@@ -79,9 +95,16 @@ export default function SessionsPage() {
               {s.finalized ? (
                 <div className="flex flex-wrap gap-2">
                   {s.players.map((p) => (
-                    <span key={p} className="inline-flex items-center gap-1 rounded-lg bg-neutral-100 px-2 py-1">
+                    <span
+                      key={p}
+                      className="inline-flex items-center gap-1 rounded-lg bg-neutral-100 px-2 py-1"
+                    >
                       <span className="font-mono">{p}</span>
-                      <span className="font-semibold">{(s as Extract<SummaryRow,{finalized:true}>).totals[p] ?? 0}</span>
+                      <span className="font-semibold">
+                        {(s as Extract<SummaryRow, { finalized: true }>).totals[
+                          p
+                        ] ?? 0}
+                      </span>
                     </span>
                   ))}
                 </div>
@@ -89,12 +112,7 @@ export default function SessionsPage() {
                 <span className="italic text-neutral-500">in-progress</span>
               )}
             </div>
-
-            <div className="mt-3 flex gap-3 text-xs">
-              <Link className="text-blue-600 hover:underline" href={`/sessions/${s.id}`}>Open</Link>
-              {/* keep your existing Delete button here if you have it */}
-            </div>
-          </div>
+          </Link>
         ))}
       </div>
     </div>
