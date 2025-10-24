@@ -25,7 +25,7 @@ the session and view its details.
 Under Rules the scoring rules are shown
 
 ## Features under development
-- persistant storage
+- <del>persistant storage</del>
 - add photo to session
 - add note to hand and show with clickable info icon and modal pop out
 - <del>update scoring table</del>
