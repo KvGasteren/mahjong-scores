@@ -4,15 +4,13 @@ import Link from 'next/link'
 
 export default function SessionsPage() {
   const { sessions, createSession, deleteSession } = useSessionStore()
+  // I believe I need to update this to use the api call, or should I use the sessionstore to acces the api?
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-semibold">Sessions</h1>
-        <button className="rounded-2xl bg-black text-white px-4 py-2" onClick={()=>{
-          const id = createSession('Mahjong Session')
-          window.location.href = `/sessions/${id}`
-        }}>New</button>
+        <Link href="/sessions/new" className="rounded-2xl bg-black text-white px-4 py-2">New</Link>
       </div>
 
       {sessions.length === 0 && (
