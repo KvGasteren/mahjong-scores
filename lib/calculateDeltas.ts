@@ -1,20 +1,20 @@
 // lib/calculateDeltas.ts
 import { type SeatIndex, type Vec4, recToVec, vecToRec } from './playerOrder'
-import { type PlayerName } from '@/constants/players'
 
 type Args = {
-  scores: Record<PlayerName, number>;   // per-player base score (already entered)
-  doubles: Record<PlayerName, number>;  // per-player doubles exponent
+  players: string[],
+  scores: Record<string, number>;   // per-player base score (already entered)
+  doubles: Record<string, number>;  // per-player doubles exponent
   winnerSeatIndex: SeatIndex;
   eastSeatIndex: SeatIndex;
 }
 
 export function calculateDeltas({
-  scores, doubles, winnerSeatIndex, eastSeatIndex
-}: Args): Record<PlayerName, number> {
+  players, scores, doubles, winnerSeatIndex, eastSeatIndex
+}: Args): Record<string, number> {
   // 1) normalize to vectors in PLAYERS order
-  const base: Vec4 = recToVec(scores)
-  const dbls: Vec4 = recToVec(doubles)
+  const base: Vec4 = recToVec(scores, players)
+  const dbls: Vec4 = recToVec(doubles, players)
 
   // 2) compute per-player final score = base * 2^doubles
   const pow2 = (e: number) => Math.pow(2, Math.max(0, Math.floor(e)))
@@ -48,5 +48,5 @@ export function calculateDeltas({
   }
 
   // 4) back to Record keyed by player name
-  return vecToRec(deltas)
+  return vecToRec(deltas, players)
 }

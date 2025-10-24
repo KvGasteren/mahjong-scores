@@ -4,4 +4,3 @@ export const PLAYERS = [
   'Bep',
   'Koen',
 ] as const
-export type PlayerName = typeof PLAYERS[number]

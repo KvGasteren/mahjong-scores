@@ -34,6 +34,7 @@ export async function POST(
   const finalScores = computeFinalScores(baseScores, doubles);
   // calculateDeltas expects per-seat order – build records by name in the same key set
   const deltas = calculateDeltas({
+    players,
     scores: finalScores,
     doubles,
     winnerSeatIndex: winnerSeatIndex as SeatIndex,

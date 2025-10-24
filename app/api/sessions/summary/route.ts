@@ -60,7 +60,7 @@ export async function GET() {
       updatedAt: s.updatedAt,
       finalized: s.finalized,
       status: "finalized" as const,
-      totals, // Record<PlayerName, number>
+      totals, // Record<string, number>
     });
   }
 
