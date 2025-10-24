@@ -185,18 +185,6 @@ export default function SessionDetailPage() {
           {data?.session.title ?? 'Session'}
         </h1>
         <div className="flex items-center gap-2">
-          {data?.session.finalized && (
-            <button
-              className={`rounded-xl border px-3 py-1 text-sm ${
-                isEditing ? 'bg-neutral-800 text-white' : 'bg-white'
-              }`}
-              onClick={() => setIsEditing((v) => !v)}
-              title={isEditing ? 'Stop editing' : 'Edit'}
-            >
-              {isEditing ? 'Done' : 'Edit'}
-            </button>
-          )}
-
           <button
             className={`rounded-xl px-3 py-1 text-sm ${
               data?.session.finalized
