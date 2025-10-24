@@ -1,4 +1,4 @@
-CREATE TABLE "hands" (
+CREATE TABLE IF NOT EXISTS "hands" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"session_id" uuid NOT NULL,
 	"index" integer NOT NULL,
@@ -12,7 +12,7 @@ CREATE TABLE "hands" (
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "sessions" (
+CREATE TABLE IF NOT EXISTS "sessions" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"title" varchar(255) NOT NULL,
 	"players" jsonb NOT NULL,
@@ -23,4 +23,21 @@ CREATE TABLE "sessions" (
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-ALTER TABLE "hands" ADD CONSTRAINT "hands_session_id_sessions_id_fk" FOREIGN KEY ("session_id") REFERENCES "public"."sessions"("id") ON DELETE cascade ON UPDATE no action;
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_constraint c
+    JOIN pg_class t ON t.oid = c.conrelid
+    JOIN pg_namespace n ON n.oid = t.relnamespace
+    WHERE c.conname = 'hands_session_id_sessions_id_fk'
+      AND n.nspname = 'public'         -- schema of the table
+  ) THEN
+    ALTER TABLE public.hands
+      ADD CONSTRAINT hands_session_id_sessions_id_fk
+      FOREIGN KEY (session_id)
+      REFERENCES public.sessions(id)
+      ON DELETE CASCADE
+      ON UPDATE NO ACTION;
+  END IF;
+END $$;

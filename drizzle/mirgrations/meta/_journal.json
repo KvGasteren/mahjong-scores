@@ -8,6 +8,13 @@
       "when": 1761203539814,
       "tag": "0000_third_expediter",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1761296914724,
+      "tag": "0001_whole_celestials",
+      "breakpoints": true
     }
   ]
 }

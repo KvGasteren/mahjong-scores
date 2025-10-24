@@ -1,4 +1,4 @@
-import { pgTable, uuid, varchar, timestamp, jsonb, integer, date } from "drizzle-orm/pg-core";
+import { pgTable, uuid, varchar, timestamp, jsonb, integer, date, boolean } from "drizzle-orm/pg-core";
 
 export const sessions = pgTable("sessions", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -7,6 +7,7 @@ export const sessions = pgTable("sessions", {
   players: jsonb("players").$type<string[]>().notNull(),
   // store YYYY-MM-DD as a date (no time) for the play date
   playDate: date("play_date").notNull(),
+  finalized: boolean("finalized").notNull().default(false),
   // future fields (kept nullable for later):
   pictureUrl: varchar("picture_url", { length: 2048 }),
   sessionNote: varchar("session_note", { length: 4000 }),
