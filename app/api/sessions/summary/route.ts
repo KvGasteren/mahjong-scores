@@ -12,7 +12,7 @@ export async function GET() {
   const rows: SessionRow[] = await db
     .select()
     .from(sessions)
-    .orderBy(desc(sessions.createdAt));
+    .orderBy(desc(sessions.playDate));
 
   // Preload hands for finalized sessions only
   const out = [];

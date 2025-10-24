@@ -67,7 +67,7 @@ export default function SessionsPage() {
                   {s.title}
                 </Link>
                 <div className="text-xs text-neutral-500">
-                  {new Date(s.createdAt).toLocaleDateString('nl-NL')}
+                  {new Date(s.playDate).toLocaleDateString('nl-NL')}
                 </div>
               </div>
               <span className={`text-xs rounded-full px-2 py-1 ${s.finalized ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
