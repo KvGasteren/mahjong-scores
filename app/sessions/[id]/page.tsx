@@ -45,7 +45,6 @@ export default function SessionDetailPage() {
   // Local input state keyed by player name
   const [scores, setScores] = useState<Record<string, number>>({});
   const [doubles, setDoubles] = useState<Record<string, number>>({});
-  const [note, setNote] = useState("");
 
   const [winnerName, setWinnerName] = useState<string | null>(null);
   const [eastName, setEastName] = useState<string | null>(null);
@@ -73,7 +72,6 @@ export default function SessionDetailPage() {
       setDoubles(init as Record<string, number>);
       setWinnerName(null);
       setEastName(null);
-      setNote("");
     })();
     return () => {
       cancelled = true;
@@ -123,7 +121,6 @@ export default function SessionDetailPage() {
     setDoubles(init);
     setWinnerName(null);
     setEastName(null);
-    setNote("");
   }
 
   async function onDeleteHand(handId: string) {
@@ -209,13 +206,6 @@ export default function SessionDetailPage() {
               </div>
             );
           })}
-
-          <input
-            className="w-full border rounded-2xl px-3 py-2 text-base md:text-sm"
-            placeholder="Note (optional): e.g., Self-draw All Pungs"
-            value={note}
-            onChange={(e) => setNote(e.target.value)}
-          />
           <button
             className="w-full rounded-2xl bg-black text-white py-3 disabled:opacity-50"
             disabled={!winnerName || !eastName}
