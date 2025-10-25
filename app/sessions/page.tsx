@@ -94,19 +94,29 @@ export default function SessionsPage() {
             <div className="mt-2 text-sm text-neutral-700">
               {s.finalized ? (
                 <div className="flex flex-wrap gap-2">
-                  {s.players.map((p) => (
-                    <span
-                      key={p}
-                      className="inline-flex items-center gap-1 rounded-lg bg-neutral-100 px-2 py-1"
-                    >
-                      <span className="font-mono">{p}</span>
-                      <span className="font-semibold">
-                        {(s as Extract<SummaryRow, { finalized: true }>).totals[
-                          p
-                        ] ?? 0}
+                  {s.players
+                    .slice()
+                    .sort(
+                      (a, b) =>
+                        ((s as Extract<SummaryRow, { finalized: true }>).totals[
+                          b
+                        ] ?? 0) -
+                        ((s as Extract<SummaryRow, { finalized: true }>).totals[
+                          a
+                        ] ?? 0)
+                    )
+                    .map((p) => (
+                      <span
+                        key={p}
+                        className="inline-flex items-center gap-1 rounded-lg bg-neutral-100 px-2 py-1"
+                      >
+                        <span className="font-mono">{p}</span>
+                        <span className="font-semibold">
+                          {(s as Extract<SummaryRow, { finalized: true }>)
+                            .totals[p] ?? 0}
+                        </span>
                       </span>
-                    </span>
-                  ))}
+                    ))}
                 </div>
               ) : (
                 <span className="italic text-neutral-500">in-progress</span>
