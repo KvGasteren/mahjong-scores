@@ -32,6 +32,7 @@ export default function WinsPie({ data }: { data: PieDatum[] }) {
   const safeTotal = total || 1; // avoid div-by-zero
 
   // Label renderer: % placed halfway through the arc thickness
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const renderInsideLabel = (props: any) => {
     const {
       cx = 0,
@@ -90,6 +91,7 @@ export default function WinsPie({ data }: { data: PieDatum[] }) {
               ))}
             </Pie>
             <Tooltip
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               formatter={(v: number, _name: string, item: any) => {
                 const pct = total ? (v / total) * 100 : 0;
                 return [`${v} wins (${formatPct(pct)})`, item?.payload?.name ?? "Wins"];
