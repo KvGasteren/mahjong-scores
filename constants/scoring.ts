@@ -25,6 +25,10 @@ export const basePoints = {
   ],
   singles: [
     {
+      label: "Boemen en Seizoenen",
+      points: 4,
+    },
+    {
       label: "Een paar van draken, eigen wind of wind van de ronde",
       points: 2,
     },
@@ -37,9 +41,10 @@ export const basePoints = {
     },
     {
       label:
-        "Vogel (Pe-ling) — Mahjong met Kringen 1 indien men daarmee een paar met Bamboe 1 maakt",
+        "Pe-ling eats Cake — Mahjong met Kringen 1 indien men daarmee een paar met Bamboe 1 maakt",
       points: 10,
     },
+    
   ],
 } as const;
 
@@ -212,26 +217,25 @@ export const doublesWinner = [
 
 export const doublesAll: { name: string; x: number; note?: number }[] = [
   { name: "Pung of kong draken, eigen wind of wind van de ronde", x: 1 },
-  { name: "3 dichte pungs (kong telt als dichte pung)", x: 1, note: 3 },
-  { name: "4 dichte pungs (kong telt als dichte pung)", x: 2, note: 3 },
+  { name: "3 dichte pungs (kong telt als dichte pung)", x: 1, note: 1 },
+  { name: "4 dichte pungs (kong telt als dichte pung)", x: 2, note: 1 },
   { name: "3 dichte kongs", x: 2 },
   { name: "4 kongs", x: 3 },
   {
     name: "Schoon spel — stenen van één soort met winden en/of draken",
     x: 4,
-    note: 1,
+    note: 2,
   },
   {
     name: "Zeer schoon — enen en/of negens van één soort met winden en/of draken",
     x: 4,
     note: 2,
   },
-  { name: "Zuiver — alleen stenen van één soort", x: 4, note: 3 },
-  { name: "Alleen winden en draken", x: 4, note: 3 },
+  { name: "Zuiver — alleen stenen van één soort", x: 4, note: 2 },
+  { name: "Alleen winden en draken", x: 4, note: 2 },
 ] as const;
 
 export const notes: Record<number, string> = {
   1: "Deze verdubbelingen mogen niet worden opgeteld.",
   2: "Deze verdubbelingen mogen niet worden opgeteld.",
-  3: "Deze verdubbelingen mogen niet worden opgeteld.",
 };
