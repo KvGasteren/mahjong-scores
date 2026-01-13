@@ -1,35 +1,99 @@
 # Mahjong Scores
-Mahjong Scores is a webapp built to track scores for my group of mahjong
-players.
 
-## Usage
-The app is currently hosted [here](https://mahjong-scores-git-main-koen-van-gasterens-projects.vercel.app/)
+Mahjong Scores is a web application for tracking and managing Mahjong game sessions and scores.
+It is built using modern web technologies with a focus on clarity, simplicity, and maintainability.
 
-### New Session and keeping score
-Sessions > New Session to start a new session
+This project serves both as a practical tool and as a portfolio project demonstrating modern React and TypeScript development practices.
 
-Per round (hand) insert the base points of each player, and the amount
-of times this should be doubled. Doubling for East is automatically taken
-into account, so should _not_ be included in this amount.
+---
 
-Indicate the winner of the round (the person that reached Mahjong)
-And the player that played East position (for double paying and receiving)
+## Features
 
-Click Add Hand to add the scores to the session.
+- Track Mahjong game sessions and scores
+- View previously played sessions
+- Rules overview page
+- Clean navigation with a responsive layout
+- Simple and readable user interface using Tailwind CSS
 
-### Viewing past sessions
-Under Sessions you see an overview of past sessions, click on the "title" to open
-the session and view its details.
+---
 
-### Perusing Rules
-Under Rules the scoring rules are shown
+## Tech Stack
 
-## Features under development
-- <del>persistant storage</del>
-- add photo to session
-- add note to hand and show with clickable info icon and modal pop out
-- <del>update scoring table</del>
-- <del>mobile: table gets bigger when editing scores</del>
+- Framework: Next.js (App Router)
+- Language: TypeScript
+- Styling: Tailwind CSS
+- Icons: Font Awesome
+- Routing: Next.js built-in routing
 
-## known bugs
-- player names constant is still used, should be based on session.players
+---
+
+## Project Structure (high-level)
+```text
+app/
+  layout.tsx        Root layout (navigation, metadata, global styles)
+  page.tsx          Home page
+  sessions/         Sessions overview
+  rules/            Rules page
+
+public/
+  icon.png          Application / navbar icon
+```
+---
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js 18 or newer
+- npm or yarn
+
+### Installation
+
+git clone https://github.com/KvGasteren/mahjong-scores.git
+cd mahjong-scores
+npm install
+
+### Run locally
+
+npm run dev
+
+Then open your browser at:
+
+http://localhost:3000
+
+---
+
+## Design Decisions
+
+- Uses the Next.js App Router to align with current best practices
+- TypeScript-first approach for improved reliability and maintainability
+- Minimal UI to keep the focus on data and usability
+- Sticky navigation for easy access across pages
+
+---
+
+## Possible Future Improvements
+
+- Editable score entries
+- Player management
+- Session statistics and summaries
+- Persistent data storage
+- Authentication for multi-user support
+
+---
+
+## Author
+
+**Koen van Gasteren**  
+Working on software, analysis, and systems that are meant to be understood and maintained.
+
+- GitHub: https://github.com/KvGasteren
+- LinkedIn: https://linkedin.com/in/koenvangasteren
+- Portfolio: https://koenvangasteren.nl
+
+---
+
+## License
+
+This project is licensed under the MIT License.
+You are free to use, modify, and distribute this project.
