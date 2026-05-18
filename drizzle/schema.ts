@@ -49,6 +49,22 @@ export const verificationTokens = pgTable(
 
 // ── Game tables ───────────────────────────────────────────────────────────────
 
+export const groups = pgTable("groups", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  name: varchar("name", { length: 255 }).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const groupMemberships = pgTable(
+  "group_memberships",
+  {
+    userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    groupId: uuid("group_id").notNull().references(() => groups.id, { onDelete: "cascade" }),
+    role: varchar("role", { length: 20 }).notNull().default("member"), // "member" | "admin"
+  },
+  (t) => [primaryKey({ columns: [t.userId, t.groupId] })]
+);
+
 export const sessions = pgTable("sessions", {
   id: uuid("id").defaultRandom().primaryKey(),
   title: varchar("title", { length: 255 }).notNull(),
@@ -57,12 +73,26 @@ export const sessions = pgTable("sessions", {
   // store YYYY-MM-DD as a date (no time) for the play date
   playDate: date("play_date").notNull(),
   finalized: boolean("finalized").notNull().default(false),
+  // nullable until backfilled by seed script
+  groupId: uuid("group_id").references(() => groups.id, { onDelete: "set null" }),
   // future fields (kept nullable for later):
   pictureUrl: varchar("picture_url", { length: 2048 }),
   sessionNote: varchar("session_note", { length: 4000 }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
+
+export const sessionPlayers = pgTable(
+  "session_players",
+  {
+    sessionId: uuid("session_id").notNull().references(() => sessions.id, { onDelete: "cascade" }),
+    // nullable — seat may not be claimed by a registered user yet
+    userId: text("user_id").references(() => users.id, { onDelete: "set null" }),
+    // seat index (0–3) matches position in sessions.players JSONB array
+    seatIndex: integer("seat_index").notNull(),
+  },
+  (t) => [primaryKey({ columns: [t.sessionId, t.seatIndex] })]
+);
 
 export const hands = pgTable("hands", {
   id: uuid("id").defaultRandom().primaryKey(),

@@ -22,6 +22,20 @@
       "when": 1779083601599,
       "tag": "0002_goofy_otto_octavius",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1779089722131,
+      "tag": "0003_funny_post",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1779090669651,
+      "tag": "0004_new_proteus",
+      "breakpoints": true
     }
   ]
 }
