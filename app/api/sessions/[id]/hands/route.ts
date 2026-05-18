@@ -5,13 +5,21 @@ import { eq, desc } from "drizzle-orm";
 import { computeFinalScores } from "@/lib/scoreHelpers";
 import { calculateDeltas } from "@/lib/calculateDeltas";
 import { SeatIndex } from "@/lib/playerOrder";
-
+import { getCurrentUser, canAccessSession } from "@/lib/apiAuth";
 
 export async function POST(
   req: Request,
-  context : { params: Promise<{ id: string }> }
+  context: { params: Promise<{ id: string }> }
 ) {
-  const { id: sessionId } = await context.params
+  const user = await getCurrentUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const { id: sessionId } = await context.params;
+
+  if (!await canAccessSession(user, sessionId)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
   const body = await req.json();
   const { baseScores, doubles, winnerName, eastName } = body as {
     baseScores: Record<string, number>;
@@ -23,16 +31,14 @@ export async function POST(
   const [session] = await db.select().from(sessions).where(eq(sessions.id, sessionId));
   if (!session) return NextResponse.json({ error: "Session not found" }, { status: 404 });
 
-  // map names -> seat indices using players[] order
   const players: string[] = session.players;
-  const winnerSeatIndex = players.indexOf(winnerName)
-  const eastSeatIndex = players.indexOf(eastName)
+  const winnerSeatIndex = players.indexOf(winnerName);
+  const eastSeatIndex = players.indexOf(eastName);
   if (winnerSeatIndex < 0 || eastSeatIndex < 0) {
     return NextResponse.json({ error: "Winner/East must be one of session players" }, { status: 400 });
   }
 
   const finalScores = computeFinalScores(baseScores, doubles);
-  // calculateDeltas expects per-seat order – build records by name in the same key set
   const deltas = calculateDeltas({
     players,
     scores: baseScores,
@@ -41,7 +47,6 @@ export async function POST(
     eastSeatIndex: eastSeatIndex as SeatIndex,
   });
 
-  // next index
   const [last] = await db.select({ index: hands.index })
     .from(hands)
     .where(eq(hands.sessionId, sessionId))
