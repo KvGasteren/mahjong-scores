@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { sessions, sessionPlayers } from "@/drizzle/schema";
-import { desc, inArray } from "drizzle-orm";
+import { sessions, sessionPlayers, groupMembers } from "@/drizzle/schema";
+import { desc, eq, inArray } from "drizzle-orm";
 import { getCurrentUser, getUserGroupIds } from "@/lib/apiAuth";
 
 export async function GET() {
@@ -34,28 +34,49 @@ export async function POST(req: Request) {
   }
 
   const body = await req.json();
-  const { title, players, playDate } = body as {
+  const { title, playDate, groupId: bodyGroupId } = body as {
     title: string;
-    players: string[]; // 4 names in seat order
-    playDate: string;  // "YYYY-MM-DD"
+    playDate: string;        // "YYYY-MM-DD"
+    groupId?: string | null; // required when user is in multiple groups
   };
 
-  if (!title || !Array.isArray(players) || players.length !== 4 || !playDate) {
+  if (!title || !playDate) {
     return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
   }
 
-  const groupId = groupIds[0] ?? null;
+  const groupId = bodyGroupId ?? groupIds[0] ?? null;
+  if (!groupId) {
+    return NextResponse.json({ error: "Could not determine group for session" }, { status: 400 });
+  }
+
+  // Derive players from the group's 4 fixed seats
+  const seats = await db
+    .select()
+    .from(groupMembers)
+    .where(eq(groupMembers.groupId, groupId))
+    .orderBy(groupMembers.seatIndex);
+
+  if (seats.length !== 4) {
+    return NextResponse.json({ error: "Group must have exactly 4 members" }, { status: 400 });
+  }
+
+  const players = seats.map((s) => s.name);
 
   const [row] = await db.insert(sessions).values({
     title,
     players,
     playDate,
     groupId,
+    createdBy: user.id,
   }).returning();
 
-  // Create unclaimed sessionPlayers rows for each seat
+  // Create sessionPlayers rows from the group seats
   await db.insert(sessionPlayers).values(
-    players.map((_, seatIndex) => ({ sessionId: row.id, userId: null, seatIndex }))
+    seats.map((s) => ({
+      sessionId: row.id,
+      userId: s.userId ?? null,
+      seatIndex: s.seatIndex,
+    }))
   );
 
   return NextResponse.json(row, { status: 201 });

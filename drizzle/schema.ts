@@ -55,6 +55,19 @@ export const groups = pgTable("groups", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
+// Fixed 4 seats per group — each seat has a name and an optional linked user
+export const groupMembers = pgTable(
+  "group_members",
+  {
+    groupId: uuid("group_id").notNull().references(() => groups.id, { onDelete: "cascade" }),
+    seatIndex: integer("seat_index").notNull(), // 0–3
+    name: varchar("name", { length: 255 }).notNull(),
+    userId: text("user_id").references(() => users.id, { onDelete: "set null" }),
+  },
+  (t) => [primaryKey({ columns: [t.groupId, t.seatIndex] })]
+);
+
+// Tracks roles for registered users (permissions layer)
 export const groupMemberships = pgTable(
   "group_memberships",
   {
@@ -75,6 +88,8 @@ export const sessions = pgTable("sessions", {
   finalized: boolean("finalized").notNull().default(false),
   // nullable until backfilled by seed script
   groupId: uuid("group_id").references(() => groups.id, { onDelete: "set null" }),
+  // user who created the session; nullable for historical sessions
+  createdBy: text("created_by").references(() => users.id, { onDelete: "set null" }),
   // future fields (kept nullable for later):
   pictureUrl: varchar("picture_url", { length: 2048 }),
   sessionNote: varchar("session_note", { length: 4000 }),

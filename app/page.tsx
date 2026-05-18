@@ -4,6 +4,7 @@ import { sessions, hands } from "@/drizzle/schema";
 import { eq, inArray } from "drizzle-orm";
 import { STARTING_POINTS } from "@/constants/scoring";
 import WinsPie from "@/components/dashboard/WinsPie";
+import { getCurrentUser, getUserGroupIds } from "@/lib/apiAuth";
 
 // Strongly-typed Drizzle row types
 export type SessionRow = typeof sessions.$inferSelect;
@@ -31,11 +32,22 @@ function isDeltasRecord(v: unknown): v is Record<string, number> {
 
 // Helper to compute final per-session totals from hands.deltas and add STARTING_POINTS once per player per session
 async function getDashboardData(): Promise<DashboardData> {
-  // 1) Load finalized sessions
-  const finalizedSessions: SessionRow[] = await db
-    .select()
-    .from(sessions)
-    .where(eq(sessions.finalized, true));
+  const user = await getCurrentUser();
+  if (!user) return { winsData: [], totalsData: [] };
+
+  // 1) Load finalized sessions visible to the user
+  let finalizedSessions: SessionRow[];
+  if (user.isSuperAdmin) {
+    finalizedSessions = await db.select().from(sessions).where(eq(sessions.finalized, true));
+  } else {
+    const groupIds = await getUserGroupIds(user.id);
+    if (groupIds.length === 0) return { winsData: [], totalsData: [] };
+    finalizedSessions = await db
+      .select()
+      .from(sessions)
+      .where(inArray(sessions.groupId, groupIds));
+    finalizedSessions = finalizedSessions.filter((s) => s.finalized);
+  }
 
   // 2) Load all hands for those sessions (single query if there are any)
   const sessionIds = finalizedSessions.map((s) => s.id);

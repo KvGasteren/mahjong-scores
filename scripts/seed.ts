@@ -15,8 +15,9 @@ config({ path: '.env.local' })
  *   1. Marks SUPERADMIN_EMAIL as superadmin
  *   2. Creates the group if it doesn't exist
  *   3. Adds the superadmin to the group as admin
- *   4. Backfills groupId on all existing sessions
- *   5. Backfills sessionPlayers rows for all sessions (userId = null)
+ *   4. Seeds group_members rows (4 fixed seats) for the initial group
+ *   5. Backfills groupId and createdBy on all existing sessions
+ *   6. Backfills sessionPlayers rows for all sessions
  *
  * After running:
  *   - Other group members can be added via the group management UI (Phase 4)
@@ -29,8 +30,17 @@ const SUPERADMIN_EMAIL = 'gasteren@gmail.com'
 async function seed() {
   // Dynamic imports so these modules load after dotenv has populated process.env
   const { db } = await import('../lib/db')
-  const { groups, groupMemberships, sessions, sessionPlayers, users } = await import('../drizzle/schema')
+  const { groups, groupMemberships, groupMembers, sessions, sessionPlayers, users } = await import('../drizzle/schema')
   const { eq, isNull } = await import('drizzle-orm')
+
+  // The 4 fixed player names for the initial group, in seat order
+  // Seat index matches the order in sessions.players for historical sessions
+  const GROUP_SEATS: { seatIndex: number; name: string; email: string | null }[] = [
+    { seatIndex: 0, name: 'Sara',      email: null },
+    { seatIndex: 1, name: 'Jozefien', email: null },
+    { seatIndex: 2, name: 'Bep',       email: null },
+    { seatIndex: 3, name: 'Koen',      email: SUPERADMIN_EMAIL },
+  ]
 
   console.log('Starting seed...\n')
 
@@ -65,11 +75,25 @@ async function seed() {
     .onConflictDoNothing()
   console.log(`✓ Added ${superadmin.name} to group as admin`)
 
-  // ── Step 5: Backfill groupId on all sessions without one ─────────────────────
-  await db.update(sessions).set({ groupId: group.id }).where(isNull(sessions.groupId))
-  console.log(`✓ Backfilled groupId on existing sessions`)
+  // ── Step 5: Seed group_members (4 fixed seats) ───────────────────────────────
+  for (const seat of GROUP_SEATS) {
+    const linkedUser = seat.email
+      ? (await db.select().from(users).where(eq(users.email, seat.email)))[0] ?? null
+      : null
+    await db
+      .insert(groupMembers)
+      .values({ groupId: group.id, seatIndex: seat.seatIndex, name: seat.name, userId: linkedUser?.id ?? null })
+      .onConflictDoNothing()
+  }
+  console.log(`✓ Seeded group_members (4 seats)`)
 
-  // ── Step 6: Backfill sessionPlayers for all sessions ─────────────────────────
+  // ── Step 6: Backfill groupId and createdBy on all sessions without one ──────
+  await db.update(sessions)
+    .set({ groupId: group.id, createdBy: superadmin.id })
+    .where(isNull(sessions.groupId))
+  console.log(`✓ Backfilled groupId and createdBy on existing sessions`)
+
+  // ── Step 7: Backfill sessionPlayers for all sessions ─────────────────────────
   // Creates one row per seat (0–3) per session, with userId = null.
   // Players can claim their seats later via the UI.
   const allSessions = await db.select({ id: sessions.id, players: sessions.players }).from(sessions)

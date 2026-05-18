@@ -29,6 +29,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             </Link>
             <div className="flex items-center gap-4 text-sm">
               <Link href="/sessions">Sessions</Link>
+              <Link href="/groups">Groups</Link>
               <Link href="/rules">Rules</Link>
               {session?.user && (
                 <div className="flex items-center gap-3">
