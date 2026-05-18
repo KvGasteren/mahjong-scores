@@ -15,6 +15,13 @@
       "when": 1761296914724,
       "tag": "0001_whole_celestials",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1779083601599,
+      "tag": "0002_goofy_otto_octavius",
+      "breakpoints": true
     }
   ]
 }

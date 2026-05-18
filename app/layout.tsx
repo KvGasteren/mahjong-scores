@@ -3,11 +3,14 @@ import Link from "next/link";
 import { config } from '@fortawesome/fontawesome-svg-core'
 import '@fortawesome/fontawesome-svg-core/styles.css'
 import Image from "next/image";
+import { auth, signOut } from "@/auth";
 config.autoAddCss = false
 
 export const metadata = { title: 'Mahjong Scores' }
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const session = await auth();
+
   return (
     <html lang="en">
       <body className="min-h-screen">
@@ -24,9 +27,32 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               />
               <span>Mahjong Scores</span>
             </Link>
-            <div className="flex gap-4 text-sm">
+            <div className="flex items-center gap-4 text-sm">
               <Link href="/sessions">Sessions</Link>
               <Link href="/rules">Rules</Link>
+              {session?.user && (
+                <div className="flex items-center gap-3">
+                  {session.user.image && (
+                    <Image
+                      src={session.user.image}
+                      alt={session.user.name ?? "User"}
+                      width={28}
+                      height={28}
+                      className="rounded-full"
+                    />
+                  )}
+                  <form
+                    action={async () => {
+                      "use server";
+                      await signOut({ redirectTo: "/login" });
+                    }}
+                  >
+                    <button type="submit" className="text-neutral-500 hover:text-neutral-800">
+                      Sign out
+                    </button>
+                  </form>
+                </div>
+              )}
             </div>
           </nav>
         </header>
