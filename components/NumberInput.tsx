@@ -35,7 +35,8 @@ export default function NumberInput({
   };
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setText(e.target.value); // update local state, but do not propagate yet
+    const raw = e.target.value;
+    if (/^-?\d*$/.test(raw)) setText(raw);
   };
 
   const commitValue = (val: string) => {
@@ -47,6 +48,10 @@ export default function NumberInput({
       // if invalid (e.g. just "-"), revert to empty string
       setText('');
     }
+  };
+
+  const handleFocus = (e: FocusEvent<HTMLInputElement>) => {
+    e.target.select();
   };
 
   const handleBlur = (e: FocusEvent<HTMLInputElement>) => {
@@ -68,6 +73,7 @@ export default function NumberInput({
       step={step}
       value={text}
       onChange={handleChange}
+      onFocus={handleFocus}
       onKeyDown={handleKeyDown}
       onBlur={handleBlur}
       className={`w-full rounded-xl border border-neutral-300 px-2 py-1 text-base md:text-sm font-mono ${className}`}

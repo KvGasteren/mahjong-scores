@@ -46,8 +46,8 @@ export default function SessionDetailPage() {
   const [isDeleting, setIsDeleting] = useState(false)
 
   // Local input state keyed by player name
-  const [scores, setScores] = useState<Record<string, number>>({})
-  const [doubles, setDoubles] = useState<Record<string, number>>({})
+  const [scores, setScores] = useState<Record<string, number | ''>>({})
+  const [doubles, setDoubles] = useState<Record<string, number | ''>>({})
 
   const [winnerName, setWinnerName] = useState<string | null>(null)
   const [eastName, setEastName] = useState<string | null>(null)
@@ -70,9 +70,9 @@ export default function SessionDetailPage() {
       setData(dto)
 
       // init input maps
-      const init = Object.fromEntries(dto.session.players.map((p) => [p, 0]))
-      setScores(init as Record<string, number>)
-      setDoubles(init as Record<string, number>)
+      const init = Object.fromEntries(dto.session.players.map((p) => [p, '' as const]))
+      setScores(init)
+      setDoubles(init)
       setWinnerName(null)
       setEastName(null)
     })()
@@ -133,7 +133,9 @@ export default function SessionDetailPage() {
 
   async function onAddHand() {
     if (!winnerName || !eastName || !data) return
-    const payload = { baseScores: scores, doubles, winnerName, eastName }
+    const toNumbers = (r: Record<string, number | ''>) =>
+      Object.fromEntries(Object.entries(r).map(([k, v]) => [k, v === '' ? 0 : v]))
+    const payload = { baseScores: toNumbers(scores), doubles: toNumbers(doubles), winnerName, eastName }
     const res = await fetch(`/api/sessions/${data.session.id}/hands`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -148,10 +150,7 @@ export default function SessionDetailPage() {
       prev ? { ...prev, hands: [...prev.hands, newHand] } : prev
     )
 
-    const init = Object.fromEntries(players.map((p) => [p, 0])) as Record<
-      string,
-      number
-    >
+    const init = Object.fromEntries(players.map((p) => [p, '' as const]))
     setScores(init)
     setDoubles(init)
     setWinnerName(null)
