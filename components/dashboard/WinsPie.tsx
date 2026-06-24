@@ -92,9 +92,10 @@ export default function WinsPie({ data }: { data: PieDatum[] }) {
             </Pie>
             <Tooltip
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              formatter={(v: number, _name: string, item: any) => {
-                const pct = total ? (v / total) * 100 : 0;
-                return [`${v} wins (${formatPct(pct)})`, item?.payload?.name ?? "Wins"];
+              formatter={(v, _name, item: any) => {
+                const wins = (v as number) ?? 0;
+                const pct = total ? (wins / total) * 100 : 0;
+                return [`${wins} wins (${formatPct(pct)})`, item?.payload?.name ?? "Wins"];
               }}
             />
           </PieChart>

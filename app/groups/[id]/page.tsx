@@ -92,6 +92,7 @@ function SeatCard({
       ) : (
         <div className="flex items-center gap-2">
           {seat.userImage && (
+            // eslint-disable-next-line @next/next/no-img-element
             <img src={seat.userImage} alt={seat.name} className="w-6 h-6 rounded-full" />
           )}
           <span className="font-medium">{seat.name}</span>

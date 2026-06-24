@@ -191,8 +191,8 @@ export default function SessionDetailPage() {
       }
       router.replace('/sessions')
       router.refresh()
-    } catch (e) {
-      alert('Something weent wrong while deleting.')
+    } catch {
+      alert('Something went wrong while deleting.')
       setIsDeleting(false)
     }
   }

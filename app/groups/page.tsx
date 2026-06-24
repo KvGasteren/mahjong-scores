@@ -45,7 +45,7 @@ export default function GroupsPage() {
           <li key={g.id}>
             <Link
               href={`/groups/${g.id}`}
-              className="flex items-center justify-between rounded-xl border border-neutral-200 px-4 py-3 hover:bg-neutral-50"
+              className="flex items-center justify-between rounded-xl border border-neutral-200 px-4 py-3 hover:bg-neutral-50 cursor-pointer"
             >
               <span className="font-medium">{g.name}</span>
               {g.role && (
