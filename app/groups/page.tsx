@@ -42,11 +42,16 @@ export default function GroupsPage() {
 
       <ul className="space-y-2">
         {groups.map((g) => (
-          <li key={g.id} className="flex items-center justify-between rounded-xl border border-neutral-200 px-4 py-3">
-            <span className="font-medium">{g.name}</span>
-            {g.role && (
-              <span className="text-xs text-neutral-400 capitalize">{g.role}</span>
-            )}
+          <li key={g.id}>
+            <Link
+              href={`/groups/${g.id}`}
+              className="flex items-center justify-between rounded-xl border border-neutral-200 px-4 py-3 hover:bg-neutral-50"
+            >
+              <span className="font-medium">{g.name}</span>
+              {g.role && (
+                <span className="text-xs text-neutral-400 capitalize">{g.role}</span>
+              )}
+            </Link>
           </li>
         ))}
       </ul>

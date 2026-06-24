@@ -209,7 +209,7 @@ export default function SessionDetailPage() {
         </h1>
         <div className="flex items-center gap-2">
           <button
-            className={`rounded-xl px-3 py-1 text-sm ${
+            className={`rounded-xl px-3 py-1 text-sm cursor-pointer ${
               data?.session.finalized
                 ? 'bg-amber-600 text-white'
                 : 'bg-emerald-600 text-white'
@@ -219,7 +219,7 @@ export default function SessionDetailPage() {
             {data?.session.finalized ? 'Unfinalize' : 'Finalize session'}
           </button>
           <button
-            className="rounded-xl px-3 py-1 text-sm bg-red-600 text-white disabled:opacity-50"
+            className="rounded-xl px-3 py-1 text-sm bg-red-600 text-white disabled:opacity-50 cursor-pointer"
             onClick={onDeleteSession}
             disabled={isDeleting}
             aria-label="Delete session"
@@ -269,7 +269,7 @@ export default function SessionDetailPage() {
                       isWinner ? `${p} is winner` : `Set ${p} as winner`
                     }
                     onClick={() => setWinnerName(isWinner ? null : p)}
-                    className={`justify-self-center p-2`}
+                    className="justify-self-center p-2 cursor-pointer"
                   >
                     <FontAwesomeIcon
                       icon={isWinner ? faStarSolid : faStarRegular}
@@ -281,7 +281,7 @@ export default function SessionDetailPage() {
                     type="button"
                     aria-label={isEast ? `${p} is East` : `Set ${p} as East`}
                     onClick={() => setEastName(isEast ? null : p)}
-                    className={`justify-self-center p-2`}
+                    className="justify-self-center p-2 cursor-pointer"
                   >
                     <FontAwesomeIcon
                       icon={isEast ? faCompassSolid : faCompassRegular}
@@ -292,7 +292,7 @@ export default function SessionDetailPage() {
               )
             })}
             <button
-              className="w-full rounded-2xl bg-black text-white py-3 disabled:opacity-50"
+              className="w-full rounded-2xl bg-black text-white py-3 disabled:opacity-50 cursor-pointer"
               disabled={!winnerName || !eastName}
               onClick={onAddHand}
             >
@@ -379,7 +379,7 @@ export default function SessionDetailPage() {
             {isEditing && (
               <div className="mt-2 flex justify-end">
                 <button
-                  className="text-xs text-red-600"
+                  className="text-xs text-red-600 cursor-pointer"
                   onClick={() => onDeleteHand(h.id)}
                 >
                   Delete
